@@ -88,7 +88,7 @@ export default function App() {
   const handleMapLoad = () => {
     const map = mapRef.current.getMap(); // Ensure the map instance is ready
     const geocoder = new MapboxGeocoder({
-      accessToken: process.env.VITE_MAPBOX_TOKEN,
+      accessToken: import.meta.env.VITE_MAPBOX_TOKEN,
       mapboxgl: map, // Attach the geocoder to the map
       marker: false, // Don't automatically add a marker
     });
@@ -130,31 +130,28 @@ export default function App() {
   const fetchRoute = async () => {
     if (startLocation && endLocation) {
       try {
-        // Geocode start and end locations
-        const startCoords = await geocodeLocation(startLocation);
-        const endCoords = await geocodeLocation(endLocation);
+        const startCoords = await geocodeLocation(startLocation); // Convert Ikeja to coords
+        const endCoords = await geocodeLocation(endLocation);     // Convert Idimu to coords
   
-        // Ensure both locations were successfully geocoded
         if (startCoords && endCoords) {
           const res = await fetch(
-            `https://api.mapbox.com/directions/v5/mapbox/driving/${startCoords.join(',')};${endCoords.join(',')}?geometries=geojson&access_token=${process.env.VITE_MAPBOX_TOKEN}`
+            `https://api.mapbox.com/directions/v5/mapbox/driving/${startCoords.join(',')};${endCoords.join(',')}?geometries=geojson&access_token=${import.meta.env.VITE_MAPBOX_TOKEN}`
           );
   
           if (res.ok) {
             const data = await res.json();
-            setRoute(data.routes[0].geometry); // Set route geometry
+            setRoute(data.routes[0].geometry); // Set the route geometry
           } else {
             const errorData = await res.json();
             console.error("Error fetching route:", errorData);
           }
-        } else {
-          console.error("Geocoding failed for one or both locations.");
         }
       } catch (error) {
         console.error("Error in geocoding or fetching route:", error);
       }
     }
   };
+  
 
   return (
     <div style={{ height: "100vh", width: "100vw", position: "relative" }}>
@@ -182,7 +179,7 @@ export default function App() {
         {...viewport}
         ref={mapRef} // Attach ref to the map
         onMove={handleMove}
-        mapboxAccessToken={process.env.VITE_MAPBOX_TOKEN}
+        mapboxAccessToken={import.meta.env.VITE_MAPBOX_TOKEN}
         mapStyle="mapbox://styles/khalidadamu09/cm1fgxn4s02ou01pmawjv92us"
         dragPan={true}
         dragRotate={true}
