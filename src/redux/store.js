@@ -1,0 +1,1 @@
+const store = createStore(reducers, applyMiddleware(taskMiddleware))
