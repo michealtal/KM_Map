@@ -1,0 +1,45 @@
+{
+    "type": "FeatureCollection",
+    "features": [
+      {
+        "type": "Feature",
+        "properties": {
+          "name": "Greenwood High School",
+          "type": "Public School",
+          "address": "123 Greenwood Ave, Abuja",
+          "uniq_id": "school_1"
+        },
+        "geometry": {
+          "type": "Point",
+          "coordinates": [7.49508, 9.05785]  
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "name": "River Valley Academy",
+          "type": "Private School",
+          "address": "456 River Rd, Abuja",
+          "uniq_id": "school_2"
+        },
+        "geometry": {
+          "type": "Point",
+          "coordinates": [7.50000, 9.06300]  
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "name": "Sunnydale International School",
+          "type": "International School",
+          "address": "789 Sunny St, Abuja",
+          "uniq_id": "school_3"
+        },
+        "geometry": {
+          "type": "Point",
+          "coordinates": [7.51000, 9.07000]  
+        }
+      }
+    ]
+  }
+  

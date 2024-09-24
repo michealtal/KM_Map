@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from "react";
-import ReactMapGL, { Marker, Popup, Source, Layer } from "react-map-gl";
+import ReactMapGL, { Marker, Popup } from "react-map-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import * as parkData from "../data/skateboard-parks.json"; // Ensure path is correct
+import cameraData from "../data/Red_Light_Camera_Locations.json";
 import MapboxGeocoder from "@mapbox/mapbox-gl-geocoder"; // Import the geocoder
 
 export default function App() {
@@ -21,16 +22,21 @@ export default function App() {
   });
 
   const [selectedPark, setSelectedPark] = useState(null);
+  const [selectedCamera, setSelectedCamera] = useState(null);
   const [userPin, setUserPin] = useState(null); // To store user's pinned location
   const [startLocation, setStartLocation] = useState(""); // Starting destination
   const [endLocation, setEndLocation] = useState(""); // Final destination
   const [route, setRoute] = useState(null); // To store route data
   const mapRef = useRef(); // Reference to the map instance
 
+  const [showParks, setShowParks] = useState(true); // State for showing skate parks
+  const [showCameras, setShowCameras] = useState(true); // State for showing cameras
+
   useEffect(() => {
     const listener = (e) => {
       if (e.key === "Escape") {
         setSelectedPark(null);
+        setSelectedCamera(null);
       }
     };
     window.addEventListener("keydown", listener);
@@ -39,6 +45,14 @@ export default function App() {
       window.removeEventListener("keydown", listener);
     };
   }, []);
+
+  const handleFilterChange = (type) => {
+    if (type === "parks") {
+      setShowParks(!showParks);
+    } else if (type === "cameras") {
+      setShowCameras(!showCameras);
+    }
+  };
 
   // Handle geolocation to get user's location
   useEffect(() => {
@@ -67,7 +81,7 @@ export default function App() {
         `https://api.mapbox.com/geocoding/v5/mapbox.places/${location}.json?access_token=${import.meta.env.VITE_MAPBOX_TOKEN}`
       );
       const data = await response.json();
-  
+
       // Check if there are valid results
       if (data.features && data.features.length > 0) {
         console.log(`Geocoded ${location}:`, data.features[0].geometry.coordinates);
@@ -81,8 +95,6 @@ export default function App() {
       return null; // Return null if there's an error
     }
   };
-
-  
 
   // Geocoder functionality (for searching locations)
   const handleMapLoad = () => {
@@ -132,12 +144,12 @@ export default function App() {
       try {
         const startCoords = await geocodeLocation(startLocation); // Convert Ikeja to coords
         const endCoords = await geocodeLocation(endLocation);     // Convert Idimu to coords
-  
+
         if (startCoords && endCoords) {
           const res = await fetch(
             `https://api.mapbox.com/directions/v5/mapbox/driving/${startCoords.join(',')};${endCoords.join(',')}?geometries=geojson&access_token=${import.meta.env.VITE_MAPBOX_TOKEN}`
           );
-  
+
           if (res.ok) {
             const data = await res.json();
             setRoute(data.routes[0].geometry); // Set the route geometry
@@ -151,7 +163,6 @@ export default function App() {
       }
     }
   };
-  
 
   return (
     <div style={{ height: "100vh", width: "100vw", position: "relative" }}>
@@ -175,6 +186,25 @@ export default function App() {
           Show Route
         </button>
       </div>
+      {/* Filter checkboxes */}
+      <div className="filter-container">
+        <label>
+          <input
+            type="checkbox"
+            checked={showParks}
+            onChange={() => handleFilterChange("parks")}
+          />
+          Show Skate Parks
+        </label>
+        <label>
+          <input
+            type="checkbox"
+            checked={showCameras}
+            onChange={() => handleFilterChange("cameras")}
+          />
+          Show Cameras
+        </label>
+      </div>
       <ReactMapGL
         {...viewport}
         ref={mapRef} // Attach ref to the map
@@ -186,7 +216,7 @@ export default function App() {
         onClick={handleMapClick} // Allow map click to pin location
         onLoad={handleMapLoad} // Handle map load to initialize geocoder
       >
-        {parkData.features.map((park) => (
+        {showParks && parkData.features.map((park) => (
           <Marker
             key={park.properties.PARK_ID}
             latitude={park.geometry.coordinates[1]}
@@ -207,9 +237,27 @@ export default function App() {
         {/* User pin after clicking on the map */}
         {userPin && (
           <Marker latitude={userPin.latitude} longitude={userPin.longitude}>
-            <img src="/pin-icon.svg" alt="User Pin" style={{ width: "24px", height: "24px" }} />
+            <div className="user-pin" />
           </Marker>
         )}
+
+        {showCameras && cameraData.features.map((camera) => (
+          <Marker
+            key={camera.properties.CAMERA_ID}
+            latitude={camera.geometry.coordinates[1]}
+            longitude={camera.geometry.coordinates[0]}
+          >
+            <button
+              className="marker-btn"
+              onClick={(evt) => {
+                evt.preventDefault();
+                setSelectedCamera(camera);
+              }}
+            >
+              <img src="/vite.svg" alt="Camera Icon" />
+            </button>
+          </Marker>
+        ))}
 
         {selectedPark && (
           <Popup
@@ -220,19 +268,33 @@ export default function App() {
           >
             <div>
               <h2>{selectedPark.properties.NAME}</h2>
-              <p>{selectedPark.properties.DESCRIPTIO}</p>
+              <p>{selectedPark.properties.DESCRIPTION}</p>
             </div>
           </Popup>
         )}
 
-        {/* Display the route on the map */}
+        {selectedCamera && (
+          <Popup
+            latitude={selectedCamera.geometry.coordinates[1]}
+            longitude={selectedCamera.geometry.coordinates[0]}
+            onClose={() => setSelectedCamera(null)}
+            closeOnClick={false}
+          >
+            <div>
+              <h2>{selectedCamera.properties.CAMERA_ID}</h2>
+              <p>{selectedCamera.properties.DESCRIPTION}</p>
+            </div>
+          </Popup>
+        )}
+
+        {/* Route line on the map */}
         {route && (
           <Source type="geojson" data={{ type: "Feature", geometry: route }}>
             <Layer
               id="route"
               type="line"
               layout={{ "line-cap": "round", "line-join": "round" }}
-              paint={{ "line-color": "#888", "line-width": 6 }}
+              paint={{ "line-color": "#888", "line-width": 8 }}
             />
           </Source>
         )}

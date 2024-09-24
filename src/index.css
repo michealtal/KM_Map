@@ -118,5 +118,27 @@ body {
     cursor: pointer;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
   }
+  .filter-container {
+    position: absolute;
+    top: 80px;
+    left: 10px;
+    background-color: rgba(255, 255, 255, 0.8);
+    padding: 10px;
+    border-radius: 5px;
+    display: flex;
+    flex-direction: column;
+    z-index: 1;
+  }
   
+  .marker-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+  }
+  
+  img {
+    width: 20px;
+    height: 20px;
+  }
+    
   
