@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import ReactMapGL, { Marker, Popup } from "react-map-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import * as parkData from "../data/skateboard-parks.json"; // Ensure path is correct
-import cameraData from "../data/Red_Light_Camera_Locations.json";
+import * as kanoSchoolData from "../data/kano_school.json"
 import MapboxGeocoder from "@mapbox/mapbox-gl-geocoder"; // Import the geocoder
 
 export default function App() {
@@ -22,7 +22,7 @@ export default function App() {
   });
 
   const [selectedPark, setSelectedPark] = useState(null);
-  const [selectedCamera, setSelectedCamera] = useState(null);
+  const [selectedSchool, setSelectedSchool] = useState(null);
   const [userPin, setUserPin] = useState(null); // To store user's pinned location
   const [startLocation, setStartLocation] = useState(""); // Starting destination
   const [endLocation, setEndLocation] = useState(""); // Final destination
@@ -30,13 +30,13 @@ export default function App() {
   const mapRef = useRef(); // Reference to the map instance
 
   const [showParks, setShowParks] = useState(true); // State for showing skate parks
-  const [showCameras, setShowCameras] = useState(true); // State for showing cameras
+  const [showSchool, setShowSchool] = useState(true); // State for showing cameras
 
   useEffect(() => {
     const listener = (e) => {
       if (e.key === "Escape") {
         setSelectedPark(null);
-        setSelectedCamera(null);
+        setSelectedSchool(null)
       }
     };
     window.addEventListener("keydown", listener);
@@ -49,8 +49,8 @@ export default function App() {
   const handleFilterChange = (type) => {
     if (type === "parks") {
       setShowParks(!showParks);
-    } else if (type === "cameras") {
-      setShowCameras(!showCameras);
+    } else if(type === "school"){
+      setShowSchool(!showSchool)
     }
   };
 
@@ -199,10 +199,10 @@ export default function App() {
         <label>
           <input
             type="checkbox"
-            checked={showCameras}
-            onChange={() => handleFilterChange("cameras")}
+            checked={showSchool}
+            onChange={() => handleFilterChange("school")}
           />
-          Show Cameras
+          Show School
         </label>
       </div>
       <ReactMapGL
@@ -241,20 +241,21 @@ export default function App() {
           </Marker>
         )}
 
-        {showCameras && cameraData.features.map((camera) => (
+        
+        {showSchool && kanoSchoolData.features.map((school) => (
           <Marker
-            key={camera.properties.CAMERA_ID}
-            latitude={camera.geometry.coordinates[1]}
-            longitude={camera.geometry.coordinates[0]}
+            key={school.properties.uniq_id}
+            latitude={school.geometry.coordinates[1]}
+            longitude={school.geometry.coordinates[0]}
           >
             <button
               className="marker-btn"
               onClick={(evt) => {
                 evt.preventDefault();
-                setSelectedCamera(camera);
+                setSelectedSchool(school);
               }}
             >
-              <img src="/vite.svg" alt="Camera Icon" />
+              <img src="/vite.svg" alt="school Icon" />
             </button>
           </Marker>
         ))}
@@ -273,16 +274,16 @@ export default function App() {
           </Popup>
         )}
 
-        {selectedCamera && (
+        {selectedSchool && (
           <Popup
-            latitude={selectedCamera.geometry.coordinates[1]}
-            longitude={selectedCamera.geometry.coordinates[0]}
+            latitude={selectedSchool.geometry.coordinates[1]}
+            longitude={selectedSchool.geometry.coordinates[0]}
             onClose={() => setSelectedCamera(null)}
             closeOnClick={false}
           >
             <div>
-              <h2>{selectedCamera.properties.CAMERA_ID}</h2>
-              <p>{selectedCamera.properties.DESCRIPTION}</p>
+              <h2>{selectedSchool.properties.name}</h2>
+              <p>{selectedSchool.properties.management}</p>
             </div>
           </Popup>
         )}
